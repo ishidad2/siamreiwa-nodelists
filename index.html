@@ -204,10 +204,10 @@
           <td>{{ data.port }}</td>
           <td>&nbsp;&nbsp;
             <template v-if="data.apiStatus.isHttpsEnabled">
-              <a :href="'https://'+data.host+':3001/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">リンク</a>
+              <a :href="'https://'+data.host+':3001/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">link</a>
             </template>
             <template v-else>
-              <a :href="'http://'+data.host+':3000/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">リンク</a>
+              <a :href="'http://'+data.host+':3000/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">link</a>
             </template>
           </td>
           <td>&nbsp;{{ getRole(data.roles) }}&nbsp;</td>

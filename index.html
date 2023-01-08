@@ -198,36 +198,107 @@
           <th>Peers</th>
           <th>networkGenerationHashSeed</th>
         </tr>
-        <tr class="d0">
-          <td>{{ message }}</td>
-          <td>001-sai-dual.symboltest.net</td>
-          <td>7900</td>
-          <td>&nbsp;&nbsp;1</td>
-          <td>&nbsp;peer,api,voting&nbsp;</td>
-          <td>001-sai-dual</td>
-          <td><img src="https://symbolnodes.org/nodes/flags/us.png" alt="us" width="16" height="11">&nbsp;United States</td>
-          <td>
-            <a href="http://001-sai-dual.symboltest.net:3000/chain/info" target="_blank">137261</a><br>
-            <a href="https://001-sai-dual.symboltest.net:3001/chain/info" target="_blank">https</a>
+        <tr class="d0" v-for="(data,i) in statistics">
+          <td>{{ i+1 }}</td>
+          <td>{{ data.host }}</td>
+          <td>{{ data.port }}</td>
+          <td>&nbsp;&nbsp;
+            <template v-if="data.apiStatus.isHttpsEnabled">
+              <a :href="'https://'+data.host+':3001/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">リンク</a>
+            </template>
+            <template v-else>
+              <a :href="'http://'+data.host+':3000/node/unlockedaccount'" target="_blank" rel="noopener noreferrer">リンク</a>
+            </template>
           </td>
-          <td>137244</td>
-          <td>192</td>
-          <td>35</td>
-          <td class="d2">&nbsp;v1.0.3.5</td>
-          <td>543 seconds ago</td>
-          <td>28</td>
-          <td>49D6E1CE276A85B70EAFE52349A...</td>
+          <td>&nbsp;{{ getRole(data.roles) }}&nbsp;</td>
+          <td>{{ data.friendlyName }}</td>
+          <td>&nbsp;
+            <template v-if="data.hostDetail">
+              {{ data.hostDetail.country }}
+            </template>
+          </td>
+          <td>
+            <a :href="'http://'+data.host+':3000/chain/info'" target="_blank">{{ data.apiStatus.chainHeight }}<a>
+            <template v-if="data.apiStatus.isHttpsEnabled">
+              <br /><a :href="'https://'+data.host+':3001/chain/info'" target="_blank">https</a><br>
+            </template>
+            </a>
+          </td>
+          <template v-if=" data.apiStatus.finalization">
+            <td>{{ data.apiStatus.finalization.height }}</td>
+            <td>{{ data.apiStatus.finalization.epoch }}</td>
+            <td>{{ data.apiStatus.finalization.point }}</td>
+          </template>
+          <template v-else>
+            <td></td>
+            <td></td>
+            <td></td>
+          </template>
+          <td>&nbsp;<a :href="'http://'+data.host+':3000/node/server'" target="_blank">link<a></td>
+          <td>{{ lastCheck(data.apiStatus.lastStatusCheck)}} seconds ago</td>
+          <td><a :href="'http://'+data.host+':3000/node/peers'" target="_blank">link<a></td>
+          <td>{{ shortMsg(data.networkGenerationHashSeed,15) }}</td>
         </tr>
       </tbody>
     </table>
   </div>
   <script src="https://unpkg.com/vue@next"></script>
   <script>
-    const statistics = "https://service.test.siamreiwa.com/nodes";
+    const statisticsURL = "https://service.test.siamreiwa.com/nodes";
     const app ={
       data(){
         return {
-          message: "ハロー"
+          statistics: [],
+        }
+      },
+      mounted(){
+        this.getStatistics();
+      },
+      methods:{
+        getStatistics(){
+          let url = new URL(statisticsURL);
+          fetch(url)
+            .then((response) => {
+              this.statusGet = response.status
+              return response.json()
+            })
+            .then((data) => {
+              this.statistics = data
+            })
+        },
+        getRole(roleNo){
+          let role;
+          switch (roleNo){
+            case 1:
+              role = 'peer';
+              break;
+            case 2:
+              role = 'api';
+              break;
+            case 4:
+              role = 'voting';
+              break;
+            case 3:
+              role = 'peer,api';
+              break;
+            case 7:
+              role = 'peer,api,voting';
+              break;
+            default:
+              role = 'Unknown';
+          }
+          return role;
+        },
+        shortMsg(strMsg = "", sliceNum = 9) {
+          if (strMsg.length > sliceNum) {
+            return strMsg.slice(0, sliceNum) + '...'
+          }
+          return strMsg
+        },
+        lastCheck(lastCheck){
+          const now = new Date();
+          const lastCheckDate = new Date(lastCheck);
+          return Math.floor(Math.abs((now - lastCheckDate)) / 1000);
         }
       }
     }
